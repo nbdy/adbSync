@@ -38,15 +38,10 @@ def get_packages(o):
     return packages
 
 
-def get_apk_paths(device, apks, max_threads=100):
+def get_apk_paths(device, apks):
     paths = []
-    pool = ThreadPool(processes=max_threads)
-    threads = []
     for apk in apks:
-        while len(threads) == 100:
-            pass
-        threads.append(pool.apply_async(execute_cmd, (["adb", "-s", device, "shell", "pm", "path", apk])))
-        paths.append(execute_cmd()[8:].strip('\n'))
+        paths.append(execute_cmd(["adb", "-s", device, "shell", "pm", "path", apk])[8:].strip('\n'))
     return paths
 
 
