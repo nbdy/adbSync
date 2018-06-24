@@ -1,5 +1,6 @@
 from os import mkdir
 from subprocess import check_output, CalledProcessError
+from sys import argv
 
 from os.path import isdir
 
@@ -8,6 +9,41 @@ from os.path import isdir
 # load when device found, check if structure changed
 # threads for time intensive operations
 # arguments
+
+
+def _help():
+    print "usage: python", __file__, "[arguments]"
+    print "\t-h\t--help"
+    print "\t-o\t--output-directory"
+    print "\t-op\t--output-prefix"
+    print "\t-a\t--apps-only"
+    print "\t-m\t--media-only"
+    exit()
+
+
+def parse_args():
+    args = {
+        "output-prefix": "",
+        "output-directory": "out/",
+        "apps-only": False,
+        "media-only": False
+    }
+
+    i = 0
+    while i < len(argv):
+        if argv[i] in ["-h", "--help"]:
+            _help()
+        elif argv[i] in ["-o", "--output-directory"]:
+            args["output-directory"] = argv[i + 1]
+        elif argv[i] in ["-op", "--output-prefix"]:
+            args["output-prefix"] = argv[i + 1]
+        elif argv[i] in ["-a", "--apps-only"]:
+            args["apps-only"] = True
+        elif argv[i] in ["-m", "--media-only"]:
+            args["media-only"] = True
+        i += 1
+
+    return args
 
 
 def execute_cmd(cmd):
