@@ -6,6 +6,9 @@ from os.path import isdir
 
 
 # todo write json with already read data from phone in device directory,
+# - save
+# -- timestamp
+# -- count
 # load when device found, check if structure changed
 # threads for time intensive operations
 # arguments
