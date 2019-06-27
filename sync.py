@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 from os import mkdir
 from subprocess import check_output, CalledProcessError
 from sys import argv
@@ -19,8 +21,9 @@ def _help():
     print "\t-h\t--help"
     print "\t-o\t--output-directory"
     print "\t-op\t--output-prefix"
-    print "\t-a\t--apps-only"
-    print "\t-m\t--media-only"
+    print "\t-a\t--apps"
+    print "\t-m\t--media"
+    print "\t-w\t--wifi\t\tneeds su enabled for adb"
     exit()
 
 
@@ -28,8 +31,9 @@ def parse_args():
     args = {
         "output-prefix": "",
         "output-directory": "out/",
-        "apps-only": False,
-        "media-only": False
+        "apps": False,
+        "media": False,
+        "wifi": False
     }
 
     i = 0
@@ -40,10 +44,12 @@ def parse_args():
             args["output-directory"] = argv[i + 1]
         elif argv[i] in ["-op", "--output-prefix"]:
             args["output-prefix"] = argv[i + 1]
-        elif argv[i] in ["-a", "--apps-only"]:
+        elif argv[i] in ["-a", "--apps"]:
             args["apps-only"] = True
-        elif argv[i] in ["-m", "--media-only"]:
+        elif argv[i] in ["-m", "--media"]:
             args["media-only"] = True
+        elif argv[i] in ["-w", "--wifi"]:
+            args["wifi"] = True
         i += 1
 
     return args
@@ -93,12 +99,18 @@ def backup_apks(device, paths):
         execute_cmd(["adb", "-s", device, "pull", path, apk_dir + path])
 
 
+def backup_wifi(device):
+    mkdir(device + "/wifi")
+    execute_cmd(["adb", "-s", device, "pull", "/data/misc/wifi/*", device + "/wifi"])
+
+
 def backup_media(device):
     mkdir(device + "/media")
     execute_cmd(["adb", "-s", device, "pull", "/sdcard/.", device + "/media"])
 
 
 def main():
+    cfg = parse_args()
     execute_cmd("adb start-server")
     devices = get_devices(execute_cmd("adb devices"))
     for device in devices:
@@ -106,10 +118,14 @@ def main():
             mkdir(device)
         else:
             pass  # todo sync
-        apks = get_packages(execute_cmd(["adb", "-s", device, "shell", "pm", "list", "packages"]))
-        paths = get_apk_paths(device, apks)
-        backup_apks(device, paths)
-        backup_media(device)
+        if cfg["apps"]:
+            apks = get_packages(execute_cmd(["adb", "-s", device, "shell", "pm", "list", "packages"]))
+            paths = get_apk_paths(device, apks)
+            backup_apks(device, paths)
+        if cfg["media"]:
+            backup_media(device)
+        if cfg["wifi"]:
+            backup_wifi(device)
 
 
 if __name__ == '__main__':
