@@ -19,8 +19,6 @@ from os.path import isdir
 def _help():
     print "usage: python", __file__, "[arguments]"
     print "\t-h\t--help"
-    print "\t-o\t--output-directory"
-    print "\t-op\t--output-prefix"
     print "\t-a\t--apps"
     print "\t-m\t--media"
     print "\t-w\t--wifi\t\tneeds su enabled for adb"
@@ -29,8 +27,6 @@ def _help():
 
 def parse_args():
     args = {
-        "output-prefix": "",
-        "output-directory": "out/",
         "apps": False,
         "media": False,
         "wifi": False
@@ -40,10 +36,6 @@ def parse_args():
     while i < len(argv):
         if argv[i] in ["-h", "--help"]:
             _help()
-        elif argv[i] in ["-o", "--output-directory"]:
-            args["output-directory"] = argv[i + 1]
-        elif argv[i] in ["-op", "--output-prefix"]:
-            args["output-prefix"] = argv[i + 1]
         elif argv[i] in ["-a", "--apps"]:
             args["apps-only"] = True
         elif argv[i] in ["-m", "--media"]:
@@ -100,8 +92,12 @@ def backup_apks(device, paths):
 
 
 def backup_wifi(device):
-    mkdir(device + "/wifi")
-    execute_cmd(["adb", "-s", device, "pull", "/data/misc/wifi/*", device + "/wifi"])
+    if not isdir(device + "/wifi"):
+        mkdir(device + "/wifi")
+    execute_cmd(["adb", "root"])
+    execute_cmd(["adb", "-s", device, "pull", "/data/misc/wifi/WifiConfigStore.xml",
+                 device + "/wifi/WifiConfigStore.xml"])
+    execute_cmd(["adb", "unroot"])
 
 
 def backup_media(device):
