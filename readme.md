@@ -1,11 +1,16 @@
-# adbSync
+## adbSync
+
+
+
 - sync (specific) sdcard (folders / files)
 - sync (specific) installed apps
 - sync wifi configuration
 
+### how to ...
 
+#### ... use it
 ```
-python2 sync.py --help
+./sync.py --help
 -a   | --apps
 -m   | --media
 -w   | --wifi               | needs su enabled for adb

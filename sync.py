@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from os import mkdir
 from subprocess import check_output, CalledProcessError
@@ -16,113 +16,116 @@ from os.path import isdir
 # arguments
 
 
-def _help():
-    print "usage: python", __file__, "[arguments]"
-    print "\t-h\t--help"
-    print "\t-a\t--apps"
-    print "\t-m\t--media"
-    print "\t-w\t--wifi\t\tneeds su enabled for adb"
-    exit()
+class Configuration(object):
+    apps = False
+    media = False
+    wifi = False
+
+    @staticmethod
+    def help():
+        print("usage: python", __file__, "[arguments]")
+        print("\t-h\t--help")
+        print("\t-a\t--apps")
+        print("\t-m\t--media")
+        print("\t-w\t--wifi\t\tneeds su enabled for adb")
+        exit()
+
+    @staticmethod
+    def parse():
+        cfg = Configuration()
+        i = 0
+        while i < len(argv):
+            a = argv[i]
+            if a in ["-h", "--help"]:
+                help()
+            elif a in ["-a", "--apps"]:
+                cfg.apps = True
+            elif a in ["-m", "--media"]:
+                cfg.media = True
+            elif a in ["-w", "--wifi"]:
+                cfg.wifi = True
+            i += 1
+        return cfg
 
 
-def parse_args():
-    args = {
-        "apps": False,
-        "media": False,
-        "wifi": False
-    }
+class ADBWrapper(object):
+    @staticmethod
+    def execute_cmd(cmd):
+        if not isinstance(cmd, list):
+            cmd = cmd.split(' ')
+        print(cmd)
+        try:
+            return check_output(cmd)
+        except CalledProcessError as e:
+            print(e.stderr)
+            pass
 
-    i = 0
-    while i < len(argv):
-        if argv[i] in ["-h", "--help"]:
-            _help()
-        elif argv[i] in ["-a", "--apps"]:
-            args["apps-only"] = True
-        elif argv[i] in ["-m", "--media"]:
-            args["media-only"] = True
-        elif argv[i] in ["-w", "--wifi"]:
-            args["wifi"] = True
-        i += 1
+    @staticmethod
+    def get_devices(o):
+        devices = []
+        o = o.split('\n')
+        devices.append(o[1].split('\t')[0])
+        return devices
 
-    return args
+    @staticmethod
+    def get_packages(o):
+        packages = []
+        o = o.split('\n')
+        for p in o:
+            p = p[8:]
+            if not p.startswith("com.android") and not p.startswith("com.google") and "lineageos" not in p and p != '':
+                packages.append(p)
+        return packages
 
+    @staticmethod
+    def get_apk_paths(device, apks):
+        paths = []
+        for apk in apks:
+            paths.append(ADBWrapper.execute_cmd(["adb", "-s", device, "shell", "pm", "path", apk])[8:].strip('\n'))
+        return paths
 
-def execute_cmd(cmd):
-    if not isinstance(cmd, list):
-        cmd = cmd.split(' ')
-    print cmd
-    try:
-        return check_output(cmd)
-    except CalledProcessError as e:
-        print e.message
-        pass
+    @staticmethod
+    def backup_apks(device, paths):
+        apk_dir = device + "/apk/"
+        if not isdir(apk_dir):
+            mkdir(apk_dir)
+        for path in paths:
+            path = path.split('/')[-1]
+            ADBWrapper.execute_cmd(["adb", "-s", device, "pull", path, apk_dir + path])
 
+    @staticmethod
+    def backup_wifi(device):
+        if not isdir(device + "/wifi"):
+            mkdir(device + "/wifi")
+        ADBWrapper.execute_cmd(["adb", "root"])
+        ADBWrapper.execute_cmd(["adb", "-s", device, "pull", "/data/misc/wifi/WifiConfigStore.xml",
+                                device + "/wifi/WifiConfigStore.xml"])
+        ADBWrapper.execute_cmd(["adb", "unroot"])
 
-def get_devices(o):
-    devices = []
-    o = o.split('\n')
-    devices.append(o[1].split('\t')[0])
-    return devices
+    @staticmethod
+    def backup_media(device):
+        mkdir(device + "/media")
+        ADBWrapper.execute_cmd(["adb", "-s", device, "pull", "/sdcard/.", device + "/media"])
 
-
-def get_packages(o):
-    packages = []
-    o = o.split('\n')
-    for p in o:
-        p = p[8:]
-        if not p.startswith("com.android") and not p.startswith("com.google") and "lineageos" not in p and p != '':
-            packages.append(p)
-    return packages
-
-
-def get_apk_paths(device, apks):
-    paths = []
-    for apk in apks:
-        paths.append(execute_cmd(["adb", "-s", device, "shell", "pm", "path", apk])[8:].strip('\n'))
-    return paths
-
-
-def backup_apks(device, paths):
-    apk_dir = device + "/apk/"
-    if not isdir(apk_dir):
-        mkdir(apk_dir)
-    for path in paths:
-        path = path.split('/')[-1]
-        execute_cmd(["adb", "-s", device, "pull", path, apk_dir + path])
-
-
-def backup_wifi(device):
-    if not isdir(device + "/wifi"):
-        mkdir(device + "/wifi")
-    execute_cmd(["adb", "root"])
-    execute_cmd(["adb", "-s", device, "pull", "/data/misc/wifi/WifiConfigStore.xml",
-                 device + "/wifi/WifiConfigStore.xml"])
-    execute_cmd(["adb", "unroot"])
-
-
-def backup_media(device):
-    mkdir(device + "/media")
-    execute_cmd(["adb", "-s", device, "pull", "/sdcard/.", device + "/media"])
-
-
-def main():
-    cfg = parse_args()
-    execute_cmd("adb start-server")
-    devices = get_devices(execute_cmd("adb devices"))
-    for device in devices:
-        if not isdir(device):
-            mkdir(device)
-        else:
-            pass  # todo sync
-        if cfg["apps"]:
-            apks = get_packages(execute_cmd(["adb", "-s", device, "shell", "pm", "list", "packages"]))
-            paths = get_apk_paths(device, apks)
-            backup_apks(device, paths)
-        if cfg["media"]:
-            backup_media(device)
-        if cfg["wifi"]:
-            backup_wifi(device)
+    @staticmethod
+    def backup(cfg):
+        ADBWrapper.execute_cmd("adb start-server")
+        devices = ADBWrapper.get_devices(ADBWrapper.execute_cmd("adb devices"))
+        for device in devices:
+            if not isdir(device):
+                mkdir(device)
+            else:
+                pass  # todo sync
+            if cfg.apps:
+                apks = ADBWrapper.get_packages(ADBWrapper.execute_cmd(["adb", "-s", device, "shell", "pm", "list",
+                                                                       "packages"]))
+                paths = ADBWrapper.get_apk_paths(device, apks)
+                ADBWrapper.backup_apks(device, paths)
+            if cfg.media:
+                ADBWrapper.backup_media(device)
+            if cfg.wifi:
+                ADBWrapper.backup_wifi(device)
 
 
 if __name__ == '__main__':
-    main()
+    ADBWrapper.backup(Configuration.parse())
