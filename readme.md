@@ -1,6 +1,6 @@
 ## adbSync
 
-
+[![Build Status](http://build.eberlein.io:8080/job/adbSync/badge/icon)](http://build.eberlein.io:8080/job/adbSync/)
 
 - sync (specific) sdcard (folders / files)
 - sync (specific) installed apps
