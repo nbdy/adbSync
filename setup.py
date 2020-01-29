@@ -16,6 +16,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.6',
     ],
+    scripts=["adbSync.py"],
     keywords="android backup phone",
     packages=find_packages(),
 )

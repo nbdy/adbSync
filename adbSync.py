@@ -63,8 +63,8 @@ class ADBWrapper(object):
     @staticmethod
     def get_devices(o):
         devices = []
-        o = o.split('\n')
-        devices.append(o[1].split('\t')[0])
+        o = o.split(b'\n')
+        devices.append(o[1].split(b'\t')[0])
         return devices
 
     @staticmethod
@@ -81,7 +81,7 @@ class ADBWrapper(object):
     def get_apk_paths(device, apks):
         paths = []
         for apk in apks:
-            paths.append(ADBWrapper.execute_cmd(["adb", "-s", device, "shell", "pm", "path", apk])[8:].strip('\n'))
+            paths.append(ADBWrapper.execute_cmd(["adb", "-s", device, "shell", "pm", "path", apk])[8:].strip(b'\n'))
         return paths
 
     @staticmethod
