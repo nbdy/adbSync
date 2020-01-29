@@ -8,6 +8,11 @@
 
 ### how to ...
 
+#### ... install
+```
+pip3 install git+https://github.com/smthnspcl/adbSync
+```
+
 #### ... use it
 ```
 ./sync.py --help
