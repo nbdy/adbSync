@@ -37,7 +37,7 @@ class Configuration(object):
         while i < len(argv):
             a = argv[i]
             if a in ["-h", "--help"]:
-                help()
+                Configuration.help()
             elif a in ["-a", "--apps"]:
                 cfg.apps = True
             elif a in ["-m", "--media"]:
