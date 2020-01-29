@@ -86,26 +86,28 @@ class ADBWrapper(object):
 
     @staticmethod
     def backup_apks(device, paths):
-        apk_dir = device + "/apk/"
-        if not isdir(apk_dir):
-            mkdir(apk_dir)
+        ap = device + b"/apk/"
+        if not isdir(ap):
+            mkdir(ap)
         for path in paths:
             path = path.split('/')[-1]
-            ADBWrapper.execute_cmd(["adb", "-s", device, "pull", path, apk_dir + path])
+            ADBWrapper.execute_cmd(["adb", "-s", device, "pull", path, ap + path])
 
     @staticmethod
     def backup_wifi(device):
-        if not isdir(device + "/wifi"):
-            mkdir(device + "/wifi")
+        wp = device + b"/wifi/"
+        if not isdir(wp):
+            mkdir(wp)
         ADBWrapper.execute_cmd(["adb", "root"])
         ADBWrapper.execute_cmd(["adb", "-s", device, "pull", "/data/misc/wifi/WifiConfigStore.xml",
-                                device + "/wifi/WifiConfigStore.xml"])
+                                wp + b"WifiConfigStore.xml"])
         ADBWrapper.execute_cmd(["adb", "unroot"])
 
     @staticmethod
     def backup_media(device):
-        mkdir(device + "/media")
-        ADBWrapper.execute_cmd(["adb", "-s", device, "pull", "/sdcard/.", device + "/media"])
+        mp = device + b"/media"
+        mkdir(mp)
+        ADBWrapper.execute_cmd(["adb", "-s", device, "pull", "/sdcard/.", mp])
 
     @staticmethod
     def backup(cfg):
