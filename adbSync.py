@@ -70,10 +70,11 @@ class ADBWrapper(object):
     @staticmethod
     def get_packages(o):
         packages = []
-        o = o.split('\n')
+        o = o.split(b'\cd n')
         for p in o:
             p = p[8:]
-            if not p.startswith("com.android") and not p.startswith("com.google") and "lineageos" not in p and p != '':
+            if not p.startswith(b"com.android") and not p.startswith(b"com.google") and b"lineageos" not in p \
+                    and p != b'':
                 packages.append(p)
         return packages
 
