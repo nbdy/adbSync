@@ -6,6 +6,8 @@
 - sync (specific) installed apps
 - sync wifi configuration
 
+[![asciicast](https://asciinema.org/a/299825.svg)](https://asciinema.org/a/299825)
+
 ### how to ...
 
 #### ... install
