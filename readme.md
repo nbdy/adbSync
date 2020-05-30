@@ -1,5 +1,4 @@
 ## adbSync
-
 [![Build Status](https://build.eberlein.io/job/python_adbSync/badge/icon)](https://build.eberlein.io/job/python_adbSync/)
 
 - sync (specific) sdcard (folders / files)
