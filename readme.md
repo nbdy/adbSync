@@ -1,5 +1,5 @@
 ## adbSync
-[![Build Status](https://build.eberlein.io/job/python_adbSync/badge/icon)](https://build.eberlein.io/job/python_adbSync/)
+[![Build Status](https://build.eberlein.io/buildStatus/icon?job=python_adbSync)](https://build.eberlein.io/job/python_adbSync/)
 
 - sync (specific) sdcard (folders / files)
 - sync (specific) installed apps
